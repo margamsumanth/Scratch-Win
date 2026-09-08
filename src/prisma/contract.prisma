@@ -1,0 +1,56 @@
+// use prisma-next
+
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  password       String
+  name           String?
+  phone          String?
+  role           String          @default("USER") // USER or ADMIN
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  scratchCards   ScratchCard[]
+  scratchResults ScratchResult[]
+}
+
+model Prize {
+  id                Int             @id @default(autoincrement())
+  title             String
+  amount            Float           @default(0)
+  probability       Float           // Selection weight e.g. 1.0 (1%), 15.0 (15%)
+  totalQuantity     Int
+  remainingQuantity  Int
+  isActive          Boolean         @default(true)
+  createdAt         TimestamptzString @default(now())
+  updatedAt         temporal.updatedAtString()
+
+  scratchResults    ScratchResult[]
+}
+
+model ScratchCard {
+  id          Int             @id @default(autoincrement())
+  code        String          @unique
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      String          @default("UNSCRATCHED") // UNSCRATCHED, SCRATCHED, EXPIRED
+  expiresAt   TimestamptzString?
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  result      ScratchResult?
+}
+
+model ScratchResult {
+  id            Int          @id @default(autoincrement())
+  scratchCardId Int          @unique // UNIQUE constraint guarantees 1 result per card (Double-scratch protection)
+  scratchCard   ScratchCard  @relation(fields: [scratchCardId], references: [id], onDelete: Cascade)
+  userId        Int
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prizeId       Int?
+  prize         Prize?       @relation(fields: [prizeId], references: [id], onDelete: SetNull)
+  prizeAmount   Float        @default(0)
+  isRedeemed    Boolean      @default(false)
+  redeemedAt    TimestamptzString?
+  scratchedAt   TimestamptzString @default(now())
+}

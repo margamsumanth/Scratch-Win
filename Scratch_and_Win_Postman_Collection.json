@@ -1,0 +1,377 @@
+{
+  "info": {
+    "name": "Scratch & Win API",
+    "description": "Complete collection of APIs (Auth, Prizes, Cards, and Analytics Modules)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Auth Module",
+      "item": [
+        {
+          "name": "1. Register Regular User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Regular User\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Register Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Admin User\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "3. Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "4. Get Profile (/auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/auth/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Prizes Module",
+      "item": [
+        {
+          "name": "1. Create Prize (ADMIN Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Bumper Cash Prize\",\n  \"amount\": 500.0,\n  \"probability\": 5.0,\n  \"totalQuantity\": 10\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/prizes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes"]
+            }
+          }
+        },
+        {
+          "name": "2. Create Prize as USER (Expect 403 Forbidden)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unauthorized Prize\",\n  \"amount\": 100.0,\n  \"probability\": 10.0,\n  \"totalQuantity\": 5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/prizes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes"]
+            }
+          }
+        },
+        {
+          "name": "3. Get All Prizes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/prizes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes"]
+            }
+          }
+        },
+        {
+          "name": "4. Get Single Prize by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/prizes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes", "1"]
+            }
+          }
+        },
+        {
+          "name": "5. Update Prize (ADMIN Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 750.0,\n  \"totalQuantity\": 15\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/prizes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes", "1"]
+            }
+          }
+        },
+        {
+          "name": "6. Delete Prize (ADMIN Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/prizes/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["prizes", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Cards & Game Engine",
+      "item": [
+        {
+          "name": "1. Issue Scratch Card (ADMIN Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/cards/issue",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["cards", "issue"]
+            }
+          }
+        },
+        {
+          "name": "2. Get My Scratch Cards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/cards/my-cards",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["cards", "my-cards"]
+            }
+          }
+        },
+        {
+          "name": "3. Scratch Card (Game Engine)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/cards/CARD-CODE-HERE/scratch",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["cards", "CARD-CODE-HERE", "scratch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Analytics Module",
+      "item": [
+        {
+          "name": "1. Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/analytics/leaderboard",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["analytics", "leaderboard"]
+            }
+          }
+        },
+        {
+          "name": "2. Get My History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{USER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/analytics/my-history",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["analytics", "my-history"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Admin Stats (ADMIN Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:4000/analytics/admin-stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["analytics", "admin-stats"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
