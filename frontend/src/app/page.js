@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ScratchCanvas from '../components/ScratchCanvas';
+import { API_BASE_URL } from '../config/api';
 
 export default function CardsPage() {
   const { token, user } = useAuth();
@@ -13,7 +14,7 @@ export default function CardsPage() {
   const fetchCards = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:4000/cards/my-cards', {
+      const res = await fetch(`${API_BASE_URL}/cards/my-cards`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

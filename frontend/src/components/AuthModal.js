@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
 export default function AuthModal({ onClose }) {
   const { login } = useAuth();
@@ -19,7 +20,7 @@ export default function AuthModal({ onClose }) {
     const payload = isLoginTab ? { email, password } : { email, password, name };
 
     try {
-      const res = await fetch(`http://localhost:4000${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

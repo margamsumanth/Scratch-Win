@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 export default function ScratchCanvas({ cardCode, token, onResult }) {
   const canvasRef = useRef(null);
@@ -69,7 +70,7 @@ export default function ScratchCanvas({ cardCode, token, onResult }) {
 
       // Trigger NestJS Backend Game Engine Scratch
       try {
-        const res = await fetch(`http://localhost:4000/cards/${cardCode}/scratch`, {
+        const res = await fetch(`${API_BASE_URL}/cards/${cardCode}/scratch`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });

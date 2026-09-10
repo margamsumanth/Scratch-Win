@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 // ----------------------------------------------------------------------
 // 1. Customer Scratch Arena Modal (Instant Scratching)
@@ -30,7 +31,7 @@ function AdminScratchModal({ code, onClose, onSuccess }) {
     const triggerReveal = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:4000/cards/public-scratch/${code}`, {
+        const res = await fetch(`${API_BASE_URL}/cards/public-scratch/${code}`, {
           method: 'POST',
         });
         const data = await res.json();
@@ -185,7 +186,7 @@ export default function AdminPage() {
     setProfileStatus(null);
     setProfileLoading(true);
     try {
-      const res = await fetch('http://localhost:4000/auth/update-profile', {
+      const res = await fetch(`${API_BASE_URL}/auth/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +215,7 @@ export default function AdminPage() {
     }
     setPasswordLoading(true);
     try {
-      const res = await fetch('http://localhost:4000/auth/change-password', {
+      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -277,7 +278,7 @@ export default function AdminPage() {
   const fetchStats = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:4000/analytics/admin-stats', {
+      const res = await fetch(`${API_BASE_URL}/analytics/admin-stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -291,7 +292,7 @@ export default function AdminPage() {
   const fetchUsers = async (page = usersPagination.page, search = usersSearch) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:4000/auth/admin/users?page=${page}&limit=10&search=${encodeURIComponent(search)}`, {
+      const res = await fetch(`${API_BASE_URL}/auth/admin/users?page=${page}&limit=10&search=${encodeURIComponent(search)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = await res.json();
@@ -308,7 +309,7 @@ export default function AdminPage() {
   const fetchCards = async (page = cardsPagination.page, search = cardsSearch, status = cardsStatusFilter) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:4000/cards/admin/all-cards?page=${page}&limit=10&status=${status}&search=${encodeURIComponent(search)}`, {
+      const res = await fetch(`${API_BASE_URL}/cards/admin/all-cards?page=${page}&limit=10&status=${status}&search=${encodeURIComponent(search)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = await res.json();
@@ -325,7 +326,7 @@ export default function AdminPage() {
   const fetchPayouts = async (page = payoutsPagination.page, search = payoutsSearch) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:4000/analytics/admin/payouts?page=${page}&limit=10&search=${encodeURIComponent(search)}`, {
+      const res = await fetch(`${API_BASE_URL}/analytics/admin/payouts?page=${page}&limit=10&search=${encodeURIComponent(search)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = await res.json();
@@ -342,7 +343,7 @@ export default function AdminPage() {
   const fetchPrizes = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:4000/prizes', {
+      const res = await fetch(`${API_BASE_URL}/prizes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -424,7 +425,7 @@ export default function AdminPage() {
     setIssuedQrCodeUrl(null);
     setIssuedCardCode(null);
     try {
-      const res = await fetch('http://localhost:4000/cards/issue', {
+      const res = await fetch(`${API_BASE_URL}/cards/issue`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -453,7 +454,7 @@ export default function AdminPage() {
   const handleDeletePrize = async (id, title) => {
     if (!confirm(`Are you sure you want to delete '${title}' from the prize pool?`)) return;
     try {
-      const res = await fetch(`http://localhost:4000/prizes/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/prizes/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -472,7 +473,7 @@ export default function AdminPage() {
   const handleCreatePrize = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:4000/prizes', {
+      const res = await fetch(`${API_BASE_URL}/prizes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -503,7 +504,7 @@ export default function AdminPage() {
   // Redeem Prize Action
   const handleRedeemPrize = async (resultId) => {
     try {
-      const res = await fetch(`http://localhost:4000/cards/redeem/${resultId}`, {
+      const res = await fetch(`${API_BASE_URL}/cards/redeem/${resultId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

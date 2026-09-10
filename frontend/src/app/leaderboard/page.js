@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 
 export default function LeaderboardPage() {
   const [leaders, setLeaders] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/analytics/leaderboard')
+    fetch(`${API_BASE_URL}/analytics/leaderboard`)
       .then((res) => res.json())
       .then((data) => setLeaders(Array.isArray(data) ? data : []))
       .catch((err) => console.error(err));
