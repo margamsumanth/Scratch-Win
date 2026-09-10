@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CardsService } from './cards.service.js';
 import { IssueCardDto } from './dto/issue-card.dto.js';
@@ -49,5 +50,32 @@ export class CardsController {
   @Roles('ADMIN')
   redeemPrize(@Param('resultId', ParseIntPipe) resultId: number) {
     return this.cardsService.redeemPrize(resultId);
+  }
+
+  // 5. Get Public Info for QR Scan Preview -> Public
+  @Get('public-info/:code')
+  getPublicCardInfo(@Param('code') code: string) {
+    return this.cardsService.getPublicCardInfo(code);
+  }
+
+  // 6. Instant Scratch via QR Scan -> Public
+  @Post('public-scratch/:code')
+  publicScratchCard(@Param('code') code: string) {
+    return this.cardsService.publicScratchCard(code);
+  }
+
+  // 7. Get Master Inventory of All Issued Cards -> ADMIN / Cashier only (Paginated)
+  @Get('admin/all-cards')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  getAllCardsAdmin(
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.cardsService.getAllCardsAdmin(search, status, pageNum, limitNum);
   }
 }

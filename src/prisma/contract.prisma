@@ -29,14 +29,15 @@ model Prize {
 }
 
 model ScratchCard {
-  id          Int             @id @default(autoincrement())
-  code        String          @unique
-  userId      Int
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status      String          @default("UNSCRATCHED") // UNSCRATCHED, SCRATCHED, EXPIRED
-  expiresAt   TimestamptzString?
-  createdAt   TimestamptzString @default(now())
-  updatedAt   temporal.updatedAtString()
+  id             Int             @id @default(autoincrement())
+  code           String          @unique
+  userId         Int
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         String          @default("UNSCRATCHED") // UNSCRATCHED, SCRATCHED, EXPIRED
+  purchaseAmount Float           @default(0)
+  expiresAt      TimestamptzString?
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
 
   result      ScratchResult?
 }

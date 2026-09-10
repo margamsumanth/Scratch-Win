@@ -14,6 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (canvas) {
     setupCanvasEvents();
   }
+
+  // Check if opened from QR code scan (?code=CARD-XXXX-XXXX)
+  const urlParams = new URLSearchParams(window.location.search);
+  const scannedCode = urlParams.get('code');
+
+  if (scannedCode) {
+    localStorage.setItem('scannedCode', scannedCode);
+    setTimeout(() => {
+      openScratchModal(scannedCode);
+    }, 300);
+  }
+
   loadActiveTabData();
 });
 
@@ -125,6 +137,14 @@ async function handleLogin(e) {
     closeAuthModal();
     updateUserUI();
     loadActiveTabData();
+
+    const pendingCode = localStorage.getItem('scannedCode');
+    if (pendingCode) {
+      localStorage.removeItem('scannedCode');
+      setTimeout(() => {
+        openScratchModal(pendingCode);
+      }, 500);
+    }
   } catch (err) {
     alert('❌ Error: ' + err.message);
   }
@@ -301,15 +321,28 @@ async function openScratchModal(code) {
 }
 
 async function executeScratchBackend() {
-  if (!activeCardCode || !currentToken) return;
+  if (!activeCardCode) return;
 
   try {
-    const res = await fetch(`/cards/${activeCardCode}/scratch`, {
+    let endpoint = currentToken
+      ? `/cards/${activeCardCode}/scratch`
+      : `/cards/public-scratch/${activeCardCode}`;
+
+    let headers = currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {};
+
+    let res = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${currentToken}` }
+      headers,
     });
 
-    const data = await res.json();
+    let data = await res.json();
+    
+    // If authenticated request fails with authorization error (mismatched user), fallback to public scratch
+    if (!res.ok && res.status === 403) {
+      res = await fetch(`/cards/public-scratch/${activeCardCode}`, { method: 'POST' });
+      data = await res.json();
+    }
+
     if (!res.ok) throw new Error(data.message || 'Scratch failed');
 
     const resultBox = document.getElementById('prizeResultText');
@@ -317,9 +350,10 @@ async function executeScratchBackend() {
       resultBox.innerHTML = `
         <div style="color:var(--primary-gold);">
           <h2 style="font-size:1.8rem; margin-bottom:0.4rem;">🎉 YOU WON!</h2>
-          <p style="font-size:1.3rem; color:#fff;">${data.prize.title}</p>
-          <p style="font-size:1.6rem; font-weight:800; color:var(--accent-emerald); margin-top:0.3rem;">$${data.prize.amount}</p>
-          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Show Result ID #${data.result.id} to Mall Cashier to Redeem</p>
+          <p style="font-size:1.3rem; color:#fff;">${data.prize ? data.prize.title : 'Cash Prize'}</p>
+          <p style="font-size:1.6rem; font-weight:800; color:var(--accent-emerald); margin-top:0.3rem;">$${data.prize ? data.prize.amount : data.result.prizeAmount}</p>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">Show Result ID #${data.result.id} to Mall Cashier to Redeem</p>
+          ${!currentToken ? `<button class="btn-gold" style="margin-top:1rem; font-size:0.85rem;" onclick="openAuthModal()">🔑 Log In / Register to Link Prize to Account</button>` : ''}
         </div>
       `;
     } else {
@@ -383,12 +417,14 @@ async function loadAdminDashboard() {
   if (!adminStatsContainer || !currentToken) return;
 
   try {
-    const res = await fetch('/analytics/admin-stats', {
-      headers: { 'Authorization': `Bearer ${currentToken}` }
-    });
+    const [statsRes, allCardsRes] = await Promise.all([
+      fetch('/analytics/admin-stats', { headers: { 'Authorization': `Bearer ${currentToken}` } }),
+      fetch('/cards/admin/all-cards', { headers: { 'Authorization': `Bearer ${currentToken}` } })
+    ]);
 
-    const stats = await res.json();
-    if (!res.ok) throw new Error(stats.message || 'Access denied');
+    const stats = await statsRes.json();
+    const allCards = await allCardsRes.json();
+    if (!statsRes.ok) throw new Error(stats.message || 'Access denied');
 
     adminStatsContainer.innerHTML = `
       <div class="stats-grid">
@@ -436,9 +472,99 @@ async function loadAdminDashboard() {
           </form>
         </div>
       </div>
+
+      <!-- Master Scratch Card Inventory Table -->
+      <div style="margin-top:2rem; background:rgba(15,23,42,0.5); padding:1.5rem; border-radius:12px; border:1px solid var(--border-color);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>🎟️ Master Scratch Card Inventory & Audit Log (${Array.isArray(allCards) ? allCards.length : 0} Cards)</h3>
+          <button class="btn-outline" style="padding:0.3rem 0.7rem; font-size:0.8rem;" onclick="loadAdminDashboard()">🔄 Refresh Table</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.85rem;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                <th style="padding:0.6rem;">Card Code</th>
+                <th style="padding:0.6rem;">Assigned Customer</th>
+                <th style="padding:0.6rem;">Status</th>
+                <th style="padding:0.6rem;">Prize Outcome</th>
+                <th style="padding:0.6rem;">Redemption</th>
+                <th style="padding:0.6rem;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Array.isArray(allCards) && allCards.length > 0 ? allCards.map(c => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td style="padding:0.6rem; font-family:monospace; font-weight:700; color:var(--primary-gold);">${c.code}</td>
+                  <td style="padding:0.6rem;">
+                    <strong>${c.user ? c.user.name : 'Unknown'}</strong><br/>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">${c.user ? c.user.email : ''} (ID #${c.user ? c.user.id : c.userId})</span>
+                  </td>
+                  <td style="padding:0.6rem;">
+                    ${c.status === 'UNSCRATCHED' 
+                      ? '<span style="background:rgba(234,179,8,0.2); color:#fde047; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.75rem; font-weight:700;">🟡 UNSCRATCHED</span>'
+                      : '<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.75rem; font-weight:700;">🟢 SCRATCHED</span>'}
+                  </td>
+                  <td style="padding:0.6rem;">
+                    ${c.result ? (c.result.prizeAmount > 0 
+                      ? `<span style="color:var(--accent-emerald); font-weight:700;">🎉 ${c.result.prize ? c.result.prize.title : 'Cash Prize'} ($${c.result.prizeAmount})</span><br/><span style="font-size:0.75rem; color:var(--text-muted);">Result ID #${c.result.id}</span>`
+                      : '<span style="color:var(--text-muted);">⚪ No Win ($0)</span>') : '<span style="color:var(--text-muted);">-</span>'}
+                  </td>
+                  <td style="padding:0.6rem;">
+                    ${c.result && c.result.prizeAmount > 0 ? (c.result.isRedeemed 
+                      ? '<span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.75rem; font-weight:700;">🏷️ REDEEMED</span>'
+                      : '<span style="background:rgba(239,68,68,0.2); color:#f87171; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.75rem; font-weight:700;">⏳ PENDING</span>') : '-'}
+                  </td>
+                  <td style="padding:0.6rem;">
+                    ${c.status === 'UNSCRATCHED'
+                      ? `<div style="display:flex; gap:0.4rem;">
+                          <button class="btn-gold" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openScratchModal('${c.code}')">✨ Scratch</button>
+                          <button class="btn-outline" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--accent-cyan);" onclick="showCustomerQrModal('${c.code}')">📱 Show QR</button>
+                         </div>`
+                      : (c.result && c.result.prizeAmount > 0 && !c.result.isRedeemed 
+                        ? `<button class="btn-gold" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:linear-gradient(135deg, #10b981, #059669);" onclick="quickRedeem(${c.result.id})">Mark as Redeemed</button>`
+                        : '-')}
+                  </td>
+                </tr>
+              `).join('') : '<tr><td colspan="6" style="padding:1rem; text-align:center; color:var(--text-muted);">No scratch cards in inventory yet.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
     `;
   } catch (err) {
     adminStatsContainer.innerHTML = `<p style="color:var(--accent-rose);">Access Denied: ${err.message}</p>`;
+  }
+}
+
+async function quickRedeem(resultId) {
+  try {
+    const res = await fetch(`/cards/redeem/${resultId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${currentToken}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    alert('🎉 ' + data.message);
+    loadAdminDashboard();
+  } catch (err) {
+    alert('❌ Error: ' + err.message);
+  }
+}
+
+function showCustomerQrModal(code) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=http://192.168.68.56:4000/?code=${code}`;
+  const qrArea = document.getElementById('qrResultArea');
+  if (qrArea) {
+    qrArea.innerHTML = `
+      <div style="background:#fff; color:#000; padding:1rem; border-radius:12px; display:inline-block; margin-top:0.5rem;">
+        <p style="font-weight:700; font-size:0.85rem; margin-bottom:0.5rem;">Customer Scan QR Code</p>
+        <img src="${qrUrl}" alt="Receipt QR Code" style="width:160px; height:160px;" />
+        <p style="font-family:monospace; font-size:0.9rem; margin-top:0.4rem; font-weight:bold;">${code}</p>
+      </div>
+    `;
+    window.scrollTo({ top: qrArea.offsetTop - 100, behavior: 'smooth' });
+  } else {
+    alert(`📱 Customer QR Code for ${code}:\nhttp://192.168.68.56:4000/?code=${code}`);
   }
 }
 

@@ -8,4 +8,7 @@ export class IssueCardDto {
   @IsString()
   @IsOptional()
   expiresAt?: string;
+
+  @IsOptional()
+  billAmount?: number;
 }

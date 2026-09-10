@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
@@ -29,5 +29,19 @@ export class AnalyticsController {
   @Roles('ADMIN')
   getAdminStats() {
     return this.analyticsService.getAdminStats();
+  }
+
+  // GET /analytics/admin/payouts -> ADMIN only (Paginated & Searchable)
+  @Get('admin/payouts')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  getAdminPayouts(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.analyticsService.getAdminPayouts(search, pageNum, limitNum);
   }
 }

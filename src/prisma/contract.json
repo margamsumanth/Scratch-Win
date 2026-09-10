@@ -172,6 +172,13 @@
                   "kind": "scalar"
                 }
               },
+              "purchaseAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -239,6 +246,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "purchaseAmount": {
+                  "column": "purchaseAmount"
                 },
                 "status": {
                   "column": "status"
@@ -625,6 +635,15 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "purchaseAmount": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -906,7 +925,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6a6d681c44808e507142826a0bd15e9eef656d360e775b9d98d4b38111548fea"
+    "storageHash": "481df2f6b5c1d98ecb754888b6960cd26e4e10bb91392236f64f5a035d4aec70"
   },
   "execution": {
     "executionHash": "dc6aa319d28c70da6af10889a4b6c17675500068d2877186180377645a76f16e",
